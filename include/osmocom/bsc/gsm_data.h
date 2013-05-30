@@ -102,6 +102,13 @@ enum integrity_protection_state {
 	INTEGRITY_PROTECTION_IK_CK	= 2,
 };
 
+/* penalty timers for handover */
+struct ho_penalty_timer {
+	struct llist_head entry;
+	uint8_t bts;
+	time_t timeout;
+};
+
 /* active radio connection of a mobile subscriber */
 struct gsm_subscriber_connection {
 	/* global linked list of subscriber_connections */
@@ -180,6 +187,9 @@ struct gsm_subscriber_connection {
 		 * associated with this subscriber connection */
 		int conn_id;
 	} a;
+
+	/* penalty timers for handover */
+	struct llist_head ho_penalty_timers;
 };
 
 

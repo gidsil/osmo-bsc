@@ -266,12 +266,15 @@ struct gsm_subscriber_connection *bsc_subscr_con_allocate(struct gsm_lchan *lcha
 	conn->via_ran = RAN_GERAN_A;
 	conn->lac = conn->bts->location_area_code;
 	lchan->conn = conn;
+	INIT_LLIST_HEAD(&conn->ho_penalty_timers);
 	llist_add_tail(&conn->entry, &net->subscr_conns);
 	return conn;
 }
 
 void bsc_subscr_con_free(struct gsm_subscriber_connection *conn)
 {
+	struct ho_penalty_timer *penalty;
+
 	if (!conn)
 		return;
 
@@ -296,6 +299,13 @@ void bsc_subscr_con_free(struct gsm_subscriber_connection *conn)
 	if (conn->secondary_lchan) {
 		LOGP(DNM, LOGL_ERROR, "The secondary_lchan should have been cleared.\n");
 		conn->secondary_lchan->conn = NULL;
+	}
+
+	/* flush handover penalty timers */
+	while ((penalty = llist_first_entry_or_null(&conn->ho_penalty_timers,
+						    struct ho_penalty_timer, entry))) {
+		llist_del(&penalty->entry);
+		talloc_free(penalty);
 	}
 
 	llist_del(&conn->entry);

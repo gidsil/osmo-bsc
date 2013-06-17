@@ -190,6 +190,9 @@ struct gsm_subscriber_connection {
 
 	/* penalty timers for handover */
 	struct llist_head ho_penalty_timers;
+
+	/* Cache DTAP messages during handover/assignment */
+	struct llist_head assignment_queue;
 };
 
 

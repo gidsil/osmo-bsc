@@ -22,10 +22,7 @@ AM_LDFLAGS = \
 # Libraries
 SUBDIRS = \
 	libcommon \
-	libvlr \
-	libmgcp \
 	libbsc \
-	libmsc \
 	libtrau \
 	libfilter \
 	libcommon-cs \
@@ -33,11 +30,8 @@ SUBDIRS = \
 
 # Programs
 SUBDIRS += \
-	osmo-msc \
-	osmo-bsc_mgcp \
 	utils \
 	ipaccess \
-	gprs \
 	$(NULL)
 
 # Conditional Programs

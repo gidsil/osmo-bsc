@@ -28,7 +28,6 @@
 #include <openbsc/gsm_data.h>
 #include <openbsc/gsm_subscriber.h>
 #include <openbsc/gsm_data.h>
-#include <openbsc/gsm_04_11.h>
 
 /* Warning: if bsc_network_init() is not called, some of the members of
  * gsm_network are not initialized properly and must not be used! (In

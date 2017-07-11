@@ -25,6 +25,7 @@
 #include <osmocom/core/write_queue.h>
 #include <osmocom/core/timer.h>
 #include <osmocom/sigtran/sccp_sap.h>
+#include <openbsc/a_reset.h>
 
 #include <netinet/in.h>
 

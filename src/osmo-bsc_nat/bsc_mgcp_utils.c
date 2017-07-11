@@ -48,8 +48,8 @@
 #include <openbsc/gsm_data.h>
 #include <openbsc/debug.h>
 #include <openbsc/ipaccess.h>
-#include <openbsc/mgcp.h>
-#include <openbsc/mgcp_internal.h>
+#include <osmocom/mgcp/mgcp.h>
+#include <osmocom/mgcp/mgcp_internal.h>
 #include <openbsc/osmux.h>
 
 #include <osmocom/ctrl/control_cmd.h>

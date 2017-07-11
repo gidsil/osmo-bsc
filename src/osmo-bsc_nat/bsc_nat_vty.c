@@ -28,6 +28,7 @@
 #include <osmocom/mgcp/mgcp.h>
 #include <openbsc/vty.h>
 #include <openbsc/nat_rewrite_trie.h>
+#include <openbsc/debug.h>
 
 #include <osmocom/core/talloc.h>
 #include <osmocom/core/rate_ctr.h>

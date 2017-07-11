@@ -21,7 +21,7 @@
 #ifndef BSC_NAT_H
 #define BSC_NAT_H
 
-#include "mgcp.h"
+#include <osmocom/mgcp/mgcp.h>
 #include "bsc_msg_filter.h"
 
 

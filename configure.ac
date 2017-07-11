@@ -242,12 +242,7 @@ AC_OUTPUT(
     tests/abis/Makefile
     tests/trau/Makefile
     tests/subscr/Makefile
-    tests/oap/Makefile
     tests/mm_auth/Makefile
-    tests/xid/Makefile
-    tests/sndcp_xid/Makefile
-    tests/slhc/Makefile
-    tests/v42bis/Makefile
     tests/nanobts_omlattr/Makefile
     doc/Makefile
     doc/examples/Makefile

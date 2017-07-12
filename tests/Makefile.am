@@ -4,7 +4,6 @@ SUBDIRS = \
 	abis \
 	trau \
 	subscr \
-	mm_auth \
 	nanobts_omlattr \
 	$(NULL)
 

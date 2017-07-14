@@ -25,7 +25,6 @@
 #include <arpa/inet.h>
 
 #include <openbsc/common_bsc.h>
-#include <openbsc/gsm_04_08.h>
 #include <openbsc/gsm_subscriber.h>
 #include <openbsc/gsm_data_shared.h>
 #include <openbsc/debug.h>
@@ -35,6 +34,7 @@
 
 #include <osmocom/core/application.h>
 #include <osmocom/gsm/sysinfo.h>
+#include <osmocom/gsm/gsm48.h>
 
 #define COMPARE(result, op, value) \
     if (!((result) op (value))) {\

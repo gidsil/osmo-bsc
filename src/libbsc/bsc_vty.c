@@ -30,6 +30,7 @@
 #include <osmocom/vty/misc.h>
 #include <osmocom/gsm/protocol/gsm_04_08.h>
 #include <osmocom/gsm/gsm0502.h>
+#include <osmocom/gsm/gsm48.h>
 
 #include <arpa/inet.h>
 
@@ -54,6 +55,7 @@
 #include <openbsc/osmo_bsc_rf.h>
 #include <openbsc/pcu_if.h>
 #include <openbsc/common_cs.h>
+#include <openbsc/gsm_04_08_utils.h>
 
 #include <inttypes.h>
 

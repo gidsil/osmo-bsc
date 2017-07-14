@@ -26,10 +26,12 @@
 #include <openbsc/bsc_subscriber.h>
 #include <osmocom/mgcp/mgcp.h>
 #include <openbsc/paging.h>
+#include <openbsc/gsm_04_08_utils.h>
 
 #include <osmocom/gsm/protocol/gsm_08_08.h>
 #include <osmocom/gsm/gsm0808.h>
 #include <osmocom/gsm/gsm0808_utils.h>
+#include <osmocom/gsm/gsm48.h>
 #include <openbsc/osmo_bsc_sigtran.h>
 #include <openbsc/a_reset.h>
 #include <osmocom/core/byteswap.h>

@@ -517,9 +517,18 @@ static int bssmap_handle_assignm_req(struct osmo_bsc_sccp_con *conn,
 	 * local preferences of the BSC */
 	rc = match_codec_pref(&full_rate, &chan_mode, &ct, scl_ptr, msc);
 	if (rc < 0) {
-		LOGP(DMSC, LOGL_ERROR, "No supported audio type found.\n");
+		LOGP(DMSC, LOGL_ERROR, "No supported audio type found for channel_type ="
+		     " { ch_indctr=0x%x, ch_rate_type=0x%x, perm_spch=[ %s] }\n",
+		     ct.ch_indctr, ct.ch_rate_type, osmo_hexdump(ct.perm_spch, ct.perm_spch_len));
+		/* TODO: actually output codec names, e.g. implement gsm0808_permitted_speech_names[] and
+		 * iterate perm_spch. */
 		goto reject;
 	}
+	DEBUGP(DMSC, "Found matching audio type: %s %s for channel_type ="
+	       " { ch_indctr=0x%x, ch_rate_type=0x%x, perm_spch=[ %s] }\n",
+	       full_rate? "full rate" : "half rate",
+	       get_value_string(gsm48_chan_mode_names, chan_mode),
+	       ct.ch_indctr, ct.ch_rate_type, osmo_hexdump(ct.perm_spch, ct.perm_spch_len));
 
 	if (aoip == false) {
 		/* map it to a MGCP Endpoint and a RTP port */

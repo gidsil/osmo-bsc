@@ -44,8 +44,7 @@
 
 /* Helper function for match_codec_pref(), looks up a matching permitted speech
  * value for a given msc audio codec pref */
-enum gsm0808_permitted_speech audio_support_to_gsm88(struct gsm_audio_support
-						     *audio)
+enum gsm0808_permitted_speech audio_support_to_gsm88(struct gsm_audio_support *audio)
 {
 	if (audio->hr) {
 		switch (audio->ver) {

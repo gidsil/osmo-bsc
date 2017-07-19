@@ -24,7 +24,7 @@
 #include <openbsc/bsc_nat_sccp.h>
 #include <openbsc/bsc_msg_filter.h>
 #include <openbsc/bsc_msc.h>
-#include <osmocom/mgcp/mgcp.h>
+#include <osmocom/legacy_mgcp/mgcp.h>
 #include <openbsc/vty.h>
 #include <openbsc/nat_rewrite_trie.h>
 #include <openbsc/debug.h>

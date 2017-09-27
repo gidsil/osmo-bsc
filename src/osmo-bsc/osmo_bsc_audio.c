@@ -29,46 +29,9 @@
 #include <osmocom/gsm/gsm0808.h>
 #include <osmocom/gsm/gsm0808_utils.h>
 #include <osmocom/bsc/osmo_bsc_sigtran.h>
+#include <osmocom/bsc/osmo_bsc_mgcp.h>
 
 #include <arpa/inet.h>
-
-/* Generate and send assignment complete message */
-static int send_aoip_ass_compl(struct gsm_subscriber_connection *conn, struct gsm_lchan *lchan)
-{
-	struct msgb *resp;
-	struct sockaddr_storage rtp_addr;
-	struct sockaddr_in rtp_addr_in;
-	struct gsm0808_speech_codec sc;
-
-	OSMO_ASSERT(lchan->abis_ip.ass_compl.valid == true);
-
-	/* Package RTP-Address data */
-	memset(&rtp_addr_in, 0, sizeof(rtp_addr_in));
-	rtp_addr_in.sin_family = AF_INET;
-	rtp_addr_in.sin_port = htons(lchan->abis_ip.bound_port);
-	rtp_addr_in.sin_addr.s_addr = htonl(lchan->abis_ip.bound_ip);
-	memset(&rtp_addr, 0, sizeof(rtp_addr));
-	memcpy(&rtp_addr, &rtp_addr_in, sizeof(rtp_addr_in));
-
-	/* Extrapolate speech codec from speech mode */
-	gsm0808_speech_codec_from_chan_type(&sc, lchan->abis_ip.ass_compl.speech_mode);
-
-	/* Generate message */
-	resp = gsm0808_create_ass_compl(lchan->abis_ip.ass_compl.rr_cause,
-					lchan->abis_ip.ass_compl.chosen_channel,
-					lchan->abis_ip.ass_compl.encr_alg_id,
-					lchan->abis_ip.ass_compl.speech_mode,
-					&rtp_addr,
-					&sc,
-					NULL);
-
-	if (!resp) {
-		LOGP(DMSC, LOGL_ERROR, "Failed to generate assignment completed message!\n"); \
-		return -EINVAL;
-	}
-
-	return osmo_bsc_sigtran_send(conn->sccp_con, resp);
-}
 
 static int handle_abisip_signal(unsigned int subsys, unsigned int signal,
 				 void *handler_data, void *signal_data)
@@ -124,11 +87,9 @@ static int handle_abisip_signal(unsigned int subsys, unsigned int signal,
 			 * IPA based base stations. See also osmo_bsc_api.c,
 			 * function bsc_assign_compl() */
 			LOGP(DMSC, LOGL_INFO, "Tx MSC ASSIGN COMPL (POSTPONED)\n");
-			if (send_aoip_ass_compl(con, lchan) != 0)
-				return -EINVAL;
+			mgcp_ass_complete(con->sccp_con->mgcp_ctx, lchan);
 		}
 		break;
-	break;
 	}
 
 	return 0;

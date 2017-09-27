@@ -33,6 +33,7 @@
 #include <osmocom/bsc/osmo_bsc_sigtran.h>
 #include <osmocom/bsc/a_reset.h>
 #include <osmocom/bsc/gsm_04_80.h>
+#include <osmocom/bsc/osmo_bsc_mgcp.h>
 
 /* A pointer to a list with all involved MSCs
  * (a copy of the pointer location submitted with osmo_bsc_sigtran_init() */

@@ -44,6 +44,7 @@
 #include <osmocom/abis/abis.h>
 
 #include <osmocom/sccp/sccp.h>
+#include <osmocom/mgcp_client/mgcp_client.h>
 
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -203,6 +204,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	bsc_gsmnet->mgw.conf = talloc_zero(bsc_gsmnet, struct mgcp_client_conf);
+	mgcp_client_conf_init(bsc_gsmnet->mgw.conf);
+
 	osmo_init_logging(&log_info);
 	osmo_stats_init(tall_bsc_ctx);
 
@@ -274,6 +278,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+	bsc_gsmnet->mgw.client = mgcp_client_init(bsc_gsmnet, bsc_gsmnet->mgw.conf);
+
+	if (mgcp_client_connect(bsc_gsmnet->mgw.client)) {
+		printf("MGCPGW connect failed\n");
+		exit(1);
+	}
+	
 	if (osmo_bsc_sigtran_init(&bsc_gsmnet->bsc_data->mscs) != 0) {
 		LOGP(DNM, LOGL_ERROR, "Failed to initalize sigtran backhaul.\n");
 		exit(1);

@@ -26,4 +26,5 @@ libcommon_a_SOURCES = \
 	socket.c \
 	talloc_ctx.c \
 	gsm_subscriber_base.c \
+	handover_cfg.c \
 	$(NULL)

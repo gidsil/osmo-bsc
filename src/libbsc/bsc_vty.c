@@ -1374,12 +1374,7 @@ DEFUN(show_subscr_conn,
 	return CMD_SUCCESS;
 }
 
-DEFUN(handover_subscr_conn,
-      handover_subscr_conn_cmd,
-      "handover <0-255> <0-255> <0-7> LCHAN_NR <0-255>",
-      "Handover subscriber connection to other BTS\n"
-      "BTS Number (current)\n" "TRX Number\n" "Timeslot Number\n"
-      LCHAN_NR_STR "BTS Number (new)\n")
+static int ho_or_as(struct vty *vty, const char *argv[], int argc)
 {
 	struct gsm_network *net = gsmnet_from_vty(vty);
 	struct gsm_subscriber_connection *conn;
@@ -1389,41 +1384,65 @@ DEFUN(handover_subscr_conn,
 	unsigned int trx_nr = atoi(argv[1]);
 	unsigned int ts_nr = atoi(argv[2]);
 	unsigned int ss_nr = atoi(argv[3]);
-	unsigned int bts_nr_new = atoi(argv[4]);
+	unsigned int bts_nr_new;
+	const char *action;
 
-	/* Lookup the BTS where we want to handover to */
-	llist_for_each_entry(bts, &net->bts_list, list) {
-		if (bts->nr == bts_nr_new) {
-			new_bts = bts;
-			break;
+	if (argc > 4) {
+		bts_nr_new = atoi(argv[4]);
+
+		/* Lookup the BTS where we want to handover to */
+		llist_for_each_entry(bts, &net->bts_list, list) {
+			if (bts->nr == bts_nr_new) {
+				new_bts = bts;
+				break;
+			}
+		}
+
+		if (!new_bts) {
+			vty_out(vty, "Unable to trigger handover, specified bts #%u does not exist %s",
+				bts_nr_new, VTY_NEWLINE);
+			return CMD_WARNING;
 		}
 	}
 
-	if (!new_bts) {
-		vty_out(vty, "Unable to trigger handover,"
-			"specified bts #%u does not exist %s", bts_nr_new,
-			VTY_NEWLINE);
-		return CMD_WARNING;
-	}
+	action = new_bts ? "handover" : "assignment";
 
 	/* Find the connection/lchan that we want to handover */
 	llist_for_each_entry(conn, &net->subscr_conns, entry) {
 		if (conn->bts->nr == bts_nr &&
 		    conn->lchan->ts->trx->nr == trx_nr &&
 		    conn->lchan->ts->nr == ts_nr && conn->lchan->nr == ss_nr) {
-			vty_out(vty, "starting handover for lchan %s...%s",
-				conn->lchan->name, VTY_NEWLINE);
+			vty_out(vty, "starting %s for lchan %s...%s", action, conn->lchan->name, VTY_NEWLINE);
 			lchan_dump_full_vty(vty, conn->lchan);
 			bsc_handover_start(conn->lchan, new_bts);
 			return CMD_SUCCESS;
 		}
 	}
 
-	vty_out(vty, "Unable to trigger handover,"
-		"specified connection (bts=%u,trx=%u,ts=%u,ss=%u) does not exist%s",
-		bts_nr, trx_nr, ts_nr, ss_nr, VTY_NEWLINE);
+	vty_out(vty, "Unable to trigger %s, specified connection (bts=%u,trx=%u,ts=%u,ss=%u) does not exist%s",
+		action, bts_nr, trx_nr, ts_nr, ss_nr, VTY_NEWLINE);
 
 	return CMD_WARNING;
+}
+
+DEFUN(handover_subscr_conn,
+      handover_subscr_conn_cmd,
+      "handover <0-255> <0-255> <0-7> LCHAN_NR <0-255>",
+      "Handover subscriber connection to other BTS\n"
+      "BTS Number (current)\n" "TRX Number\n" "Timeslot Number\n"
+      LCHAN_NR_STR "BTS Number (new)\n")
+{
+	return ho_or_as(vty, argv, argc);
+}
+
+DEFUN(assignment_subscr_conn,
+      assignment_subscr_conn_cmd,
+      "assignment <0-255> <0-255> <0-7> LCHAN_NR",
+      "Trigger assignment for subscriber connection within BTS\n"
+      "BTS Number (current)\n" "TRX Number\n" "Timeslot Number\n"
+      LCHAN_NR_STR)
+{
+	return ho_or_as(vty, argv, argc);
 }
 
 static void paging_dump_vty(struct vty *vty, struct gsm_paging_request *pag)
@@ -4150,6 +4169,7 @@ int bsc_vty_init(struct gsm_network *network)
 
 	install_element_ve(&show_subscr_conn_cmd);
 	install_element_ve(&handover_subscr_conn_cmd);
+	install_element_ve(&assignment_subscr_conn_cmd);
 
 	install_element_ve(&show_paging_cmd);
 	install_element_ve(&show_paging_group_cmd);

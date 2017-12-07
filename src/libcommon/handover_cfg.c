@@ -23,7 +23,10 @@
 #include <stdbool.h>
 #include <talloc.h>
 
+#include <osmocom/bsc/debug.h>
+
 #include <osmocom/bsc/vty.h>
+#include <osmocom/bsc/handover_decision_2.h>
 #include <osmocom/bsc/handover_cfg.h>
 #include <osmocom/bsc/gsm_data.h>
 
@@ -50,6 +53,32 @@ struct handover_cfg *ho_cfg_init(void *ctx, enum handover_cfg_ctx_type ctx_type,
 	ho->ctx = ctx;
 	ho->ctx_type = ctx_type;
 	return ho;
+}
+
+static void on_change_congestion_check_interval(void *ctx, enum handover_cfg_ctx_type ctx_type)
+{
+	struct gsm_network *net = NULL;
+	struct gsm_bts *bts;
+
+	switch (ctx_type) {
+	default:
+		LOGP(DHODEC, LOGL_ERROR, "Invalid HO config context type: %d\n", ctx_type);
+		return;
+	case HO_CFG_CTX_BTS:
+		handover_decision_2_reinit_congestion_timer((struct gsm_bts*)ctx);
+		return;
+	case HO_CFG_CTX_NET:
+		/* Restart HO timers for all BTS */
+		net = ctx;
+		break;
+	}
+
+	llist_for_each_entry(bts, &net->bts_list, list) {
+		/* If the BTS has its own value, the network level config cannot change it. */
+		if (!ho_isset_congestion_check_interval(bts->ho))
+			continue;
+		handover_decision_2_reinit_congestion_timer(bts);
+	}
 }
 
 #define HO_CFG_ONE_MEMBER(TYPE, NAME, DEFAULT_VAL, ON_CHANGE, VTY1, VTY2, VTY_ARG_EVAL, VTY4, VTY5, VTY6) \

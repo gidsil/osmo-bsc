@@ -157,7 +157,7 @@ static inline const char *congestion_check_interval2a(int val)
 		"Disable in-call assignment\n" \
 		"Enable in-call assignment\n") \
 	\
-	HO_CFG_ONE_MEMBER(int, congestion_check_interval, 10, NULL, \
+	HO_CFG_ONE_MEMBER(int, congestion_check_interval, 10, on_change_congestion_check_interval, \
 		"handover congestion-check", "disabled|<1-60>", \
 		a2congestion_check_interval, "%s", congestion_check_interval2a, \
 		HO_CFG_STR_HANDOVER \

@@ -730,6 +730,9 @@ int gsm0808_cipher_mode(struct gsm_subscriber_connection *conn, int cipher,
 		return -1;
 	}
 
+	LOGP(DRSL, LOGL_DEBUG, "(subscr %s) Cipher Mode: cipher=%d key=%s include_imeisv=%d\n",
+	     bsc_subscr_name(conn->bsub), cipher, osmo_hexdump_nospc(key, len), include_imeisv);
+
 	conn->lchan->encr.alg_id = RSL_ENC_ALG_A5(cipher);
 	if (key) {
 		conn->lchan->encr.key_len = len;

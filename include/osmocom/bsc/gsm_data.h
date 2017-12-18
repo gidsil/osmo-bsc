@@ -85,9 +85,6 @@ struct gsm_subscriber_connection {
 	struct gsm_lchan *lchan;
 	/* the future/allocated but not yet used lchan during HANDOVER */
 	struct gsm_lchan *ho_lchan;
-	/* a short-hand pointer to the BTS currently serving the subscriber,
-	 * points to gsm_subscriber_connection.lchan->ts->trx->bts */
-	struct gsm_bts *bts;
 
 	/* timer for assignment handling */
 	struct osmo_timer_list T10;
@@ -98,12 +95,13 @@ struct gsm_subscriber_connection {
 	struct gsm_classmark classmark;
 };
 
-static inline struct gsm_bts *conn_get_bts(struct gsm_subscriber_connection *conn) {
-	return conn->bts;
-}
-
 
 #include "gsm_data_shared.h"
+
+static inline struct gsm_bts *conn_get_bts(struct gsm_subscriber_connection *conn) {
+	OSMO_ASSERT(conn->lchan);
+	return conn->lchan->ts->trx->bts;
+}
 
 enum {
 	BTS_CTR_CHREQ_TOTAL,

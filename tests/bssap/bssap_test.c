@@ -75,19 +75,20 @@ struct {
 	},
 };
 
+struct gsm_network *bsc_gsmnet;
+
 void test_cell_identifier()
 {
 	int i;
 	int rc;
-	struct gsm_network *net;
 	struct bsc_msc_data *msc;
 
-	net = bsc_network_init(NULL, 1, 1);
-	net->bsc_data->rf_ctrl = talloc_zero(NULL, struct osmo_bsc_rf);
-	net->bsc_data->rf_ctrl->policy = S_RF_ON;
+	bsc_gsmnet = bsc_network_init(NULL, 1, 1);
+	bsc_gsmnet->bsc_data->rf_ctrl = talloc_zero(NULL, struct osmo_bsc_rf);
+	bsc_gsmnet->bsc_data->rf_ctrl->policy = S_RF_ON;
 
-	msc = talloc_zero(net, struct bsc_msc_data);
-	msc->network = net;
+	msc = talloc_zero(bsc_gsmnet, struct bsc_msc_data);
+	msc->network = bsc_gsmnet;
 
 	log_set_log_level(osmo_stderr_target, LOGL_DEBUG);
 

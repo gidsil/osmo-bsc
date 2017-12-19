@@ -17,6 +17,7 @@
 #include <osmocom/bsc/common.h>
 #include <osmocom/bsc/rest_octets.h>
 #include <osmocom/bsc/common_cs.h>
+#include <osmocom/bsc/bsc_msg_filter.h>
 
 
 /** annotations for msgb ownership */
@@ -67,6 +68,12 @@ struct gsm_classmark {
 	uint8_t classmark3[14]; /* if cm3 gets extended by spec, it will be truncated */
 };
 
+enum subscr_sccp_state {
+	SUBSCR_SCCP_ST_NONE,
+	SUBSCR_SCCP_ST_WAIT_CONN_CONF,
+	SUBSCR_SCCP_ST_CONNECTED
+};
+
 /* active radio connection of a mobile subscriber */
 struct gsm_subscriber_connection {
 	/* global linked list of subscriber_connections */
@@ -74,9 +81,6 @@ struct gsm_subscriber_connection {
 
 	/* libbsc subscriber information (if available) */
 	struct bsc_subscr *bsub;
-
-	/* SCCP connection associatd with this subscriber_connection */
-	struct osmo_bsc_sccp_con *sccp_con;
 
 	/* back pointers */
 	struct gsm_network *network;
@@ -93,6 +97,47 @@ struct gsm_subscriber_connection {
 
 	/* buffer/cache for classmark of the ME of the subscriber */
 	struct gsm_classmark classmark;
+
+	/* flag to prevent multiple simultaneous ciphering commands */
+	int ciphering_handled;
+
+	/* state related to welcome USSD */
+	uint8_t new_subscriber;
+
+	/* state related to osmo_bsc_filter.c */
+	struct bsc_filter_state filter_state;
+
+	/* SCCP connection associatd with this subscriber_connection */
+	struct {
+		/* for advanced ping/pong */
+		int send_ping;
+
+		/* SCCP connection realted */
+		struct bsc_msc_data *msc;
+
+		/* Sigtran connection ID */
+		int conn_id;
+		enum subscr_sccp_state state;
+	} sccp;
+
+	/* for audio handling */
+	struct {
+		uint16_t cic;
+		uint32_t rtp_ip;
+		int rtp_port;
+		/* RTP address of the remote end (assigned by MSC through assignment request) */
+		struct sockaddr_storage aoip_rtp_addr_remote;
+
+		/* Local RTP address (reported back to the MSC by us with the
+		 * assignment complete message) */
+		struct sockaddr_storage aoip_rtp_addr_local;
+
+		/* storage to keep states of the MGCP connection handler, the
+		* handler is created when an assignment request is received
+		* and is terminated when the assignment complete message is
+		* sent */
+		struct mgcp_ctx *mgcp_ctx;
+	} user_plane;
 };
 
 

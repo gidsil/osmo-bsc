@@ -52,7 +52,7 @@ static void handle_lu_request(struct gsm_subscriber_connection *conn,
 
 	if (memcmp(&lai, &lu->lai, sizeof(lai)) != 0) {
 		LOGP(DMSC, LOGL_DEBUG, "Marking con for welcome USSD.\n");
-		conn->sccp_con->new_subscriber = 1;
+		conn->new_subscriber = 1;
 	}
 }
 
@@ -232,15 +232,7 @@ int bsc_scan_bts_msg(struct gsm_subscriber_connection *conn, struct msgb *msg)
 
 static int send_welcome_ussd(struct gsm_subscriber_connection *conn)
 {
-	struct osmo_bsc_sccp_con *bsc_con;
-
-	bsc_con = conn->sccp_con;
-	if (!bsc_con) {
-		LOGP(DMSC, LOGL_DEBUG, "No SCCP connection associated.\n");
-		return 0;
-	}
-
-	if (!bsc_con->msc->ussd_welcome_txt) {
+	if (!conn->sccp.msc->ussd_welcome_txt) {
 		LOGP(DMSC, LOGL_DEBUG, "No USSD Welcome text defined.\n");
 		return 0;
 	}
@@ -250,7 +242,7 @@ static int send_welcome_ussd(struct gsm_subscriber_connection *conn)
 
 int bsc_send_welcome_ussd(struct gsm_subscriber_connection *conn)
 {
-	bsc_send_ussd_notify(conn, 1, conn->sccp_con->msc->ussd_welcome_txt);
+	bsc_send_ussd_notify(conn, 1, conn->sccp.msc->ussd_welcome_txt);
 	bsc_send_ussd_release_complete(conn);
 
 	return 0;
@@ -360,7 +352,7 @@ int bsc_scan_msc_msg(struct gsm_subscriber_connection *conn, struct msgb *msg)
 
 	mtype = gsm48_hdr_msg_type(gh);
 	net = bts->network;
-	msc = conn->sccp_con->msc;
+	msc = conn->sccp.msc;
 
 	if (mtype == GSM48_MT_MM_LOC_UPD_ACCEPT) {
 		if (has_core_identity(msc)) {
@@ -373,7 +365,7 @@ int bsc_scan_msc_msg(struct gsm_subscriber_connection *conn, struct msgb *msg)
 			}
 		}
 
-		if (conn->sccp_con->new_subscriber)
+		if (conn->new_subscriber)
 			return send_welcome_ussd(conn);
 		return 0;
 	} else if (mtype == GSM48_MT_MM_INFO) {

@@ -42,7 +42,7 @@ struct mgcp_ctx {
 	/* Copy of the pointer and the data with context information
 	 * needed to process the AoIP and MGCP requests (system data) */
 	struct mgcp_client *mgcp;
-	struct osmo_bsc_sccp_con *conn;
+	struct gsm_subscriber_connection *conn;
 	enum gsm48_chan_mode chan_mode;
 	bool full_rate;
 	struct gsm_lchan *lchan;
@@ -50,7 +50,8 @@ struct mgcp_ctx {
 	struct msgb *resp;
 };
 
-struct mgcp_ctx *mgcp_assignm_req(void *ctx, struct mgcp_client *mgcp, struct osmo_bsc_sccp_con *conn,
+struct mgcp_ctx *mgcp_assignm_req(void *ctx, struct mgcp_client *mgcp,
+				  struct gsm_subscriber_connection *conn,
 				  enum gsm48_chan_mode chan_mode, bool full_rate);
 void mgcp_clear_complete(struct mgcp_ctx *mgcp_ctx, struct msgb *resp);
 void mgcp_ass_complete(struct mgcp_ctx *mgcp_ctx, struct gsm_lchan *lchan);

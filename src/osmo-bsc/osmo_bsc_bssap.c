@@ -475,6 +475,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 	struct gsm0808_channel_type ct;
 	struct gsm0808_speech_codec_list scl;
 	struct gsm0808_speech_codec_list *scl_ptr = NULL;
+	uint8_t cause;
 	int rc;
 
 	if (!conn) {
@@ -490,6 +491,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 	/* Check for channel type element, if its missing, immediately reject */
 	if (!TLVP_PRESENT(&tp, GSM0808_IE_CHANNEL_TYPE)) {
 		LOGP(DMSC, LOGL_ERROR, "Mandatory channel type not present.\n");
+		cause = GSM0808_CAUSE_INFORMATION_ELEMENT_OR_FIELD_MISSING;
 		goto reject;
 	}
 
@@ -498,6 +500,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 				      TLVP_LEN(&tp, GSM0808_IE_CHANNEL_TYPE));
 	if (rc < 0) {
 		LOGP(DMSC, LOGL_ERROR, "unable to decode channel type.\n");
+		cause = GSM0808_CAUSE_INCORRECT_VALUE;
 		goto reject;
 	}
 
@@ -506,6 +509,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 	 * multi-slot, limiting the channel coding to speech */
 	if (ct.ch_indctr != GSM0808_CHAN_SPEECH) {
 		LOGP(DMSC, LOGL_ERROR, "Unsupported channel type, currently only speech is supported!\n");
+		cause = GSM0808_CAUSE_REQ_CODEC_TYPE_OR_CONFIG_NOT_SUPP;
 		goto reject;
 	}
 
@@ -520,14 +524,14 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 		rc = gsm0808_dec_aoip_trasp_addr(&rtp_addr, TLVP_VAL(&tp, GSM0808_IE_AOIP_TRASP_ADDR),
 						 TLVP_LEN(&tp, GSM0808_IE_AOIP_TRASP_ADDR));
 		if (rc < 0) {
-			LOGP(DMSC, LOGL_ERROR,
-			     "Unable to decode aoip transport address.\n");
+			LOGP(DMSC, LOGL_ERROR, "Unable to decode aoip transport address.\n");
+			cause = GSM0808_CAUSE_INCORRECT_VALUE;
 			goto reject;
 		}
 		aoip = true;
 	} else {
-		LOGP(DMSC, LOGL_ERROR,
-		     "transport address missing. Audio routing will not work.\n");
+		LOGP(DMSC, LOGL_ERROR, "transport address missing. Audio routing will not work.\n");
+		cause = GSM0808_CAUSE_INFORMATION_ELEMENT_OR_FIELD_MISSING;
 		goto reject;
 	}
 
@@ -535,8 +539,8 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 	if (aoip) {
 		/* Check for speech codec list element */
 		if (!TLVP_PRESENT(&tp, GSM0808_IE_SPEECH_CODEC_LIST)) {
-			LOGP(DMSC, LOGL_ERROR,
-			     "Mandatory speech codec list not present.\n");
+			LOGP(DMSC, LOGL_ERROR, "Mandatory speech codec list not present.\n");
+			cause = GSM0808_CAUSE_INFORMATION_ELEMENT_OR_FIELD_MISSING;
 			goto reject;
 		}
 
@@ -544,8 +548,8 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 		rc = gsm0808_dec_speech_codec_list(&scl, TLVP_VAL(&tp, GSM0808_IE_SPEECH_CODEC_LIST),
 						   TLVP_LEN(&tp, GSM0808_IE_SPEECH_CODEC_LIST));
 		if (rc < 0) {
-			LOGP(DMSC, LOGL_ERROR,
-			     "Unable to decode speech codec list\n");
+			LOGP(DMSC, LOGL_ERROR, "Unable to decode speech codec list\n");
+			cause = GSM0808_CAUSE_INCORRECT_VALUE;
 			goto reject;
 		}
 		scl_ptr = &scl;
@@ -560,6 +564,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 		     ct.ch_indctr, ct.ch_rate_type, osmo_hexdump(ct.perm_spch, ct.perm_spch_len));
 		/* TODO: actually output codec names, e.g. implement gsm0808_permitted_speech_names[] and
 		 * iterate perm_spch. */
+		cause = GSM0808_CAUSE_REQ_CODEC_TYPE_OR_CONFIG_UNAVAIL;
 		goto reject;
 	}
 	DEBUGP(DMSC, "Found matching audio type: %s %s for channel_type ="
@@ -588,6 +593,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 		if (!conn->user_plane.mgcp_ctx) {
 			LOGP(DMSC, LOGL_ERROR, "MGCP GW failure, rejecting assignment... (id=%i)\n",
 				conn->sccp.conn_id);
+			cause = GSM0808_CAUSE_EQUIPMENT_FAILURE;
 			goto reject;
 		}
 
@@ -605,9 +611,7 @@ static int bssmap_handle_assignm_req(struct gsm_subscriber_connection *conn,
 	}
 
 reject:
-	resp =
-	    gsm0808_create_assignment_failure
-	    (GSM0808_CAUSE_NO_RADIO_RESOURCE_AVAILABLE, NULL);
+	resp = gsm0808_create_assignment_failure(cause, NULL);
 	if (!resp) {
 		LOGP(DMSC, LOGL_ERROR, "Channel allocation failure.\n");
 		return -1;

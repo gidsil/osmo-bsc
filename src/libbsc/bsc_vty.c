@@ -1,5 +1,5 @@
 /* OpenBSC interface to quagga VTY */
-/* (C) 2009-2010 by Harald Welte <laforge@gnumonks.org>
+/* (C) 2009-2017 by Harald Welte <laforge@gnumonks.org>
  * All Rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
@@ -168,8 +168,12 @@ static void net_dump_vty(struct vty *vty, struct gsm_network *net)
 		"and has %u BTS%s", net->country_code, net->network_code,
 		net->num_bts, VTY_NEWLINE);
 	vty_out(vty, "%s", VTY_NEWLINE);
-	vty_out(vty, "  Encryption: A5/%u%s", net->a5_encryption,
-		VTY_NEWLINE);
+	vty_out(vty, "  Encryption:");
+	for (int i = 0; i < 8; i++) {
+		if (net->a5_encryption_mask & (1 << i))
+			vty_out(vty, " A5/%u", i);
+	}
+	vty_out(vty, "%s", VTY_NEWLINE);
 	vty_out(vty, "  NECI (TCH/H): %u%s", net->neci,
 		VTY_NEWLINE);
 	vty_out(vty, "  Use TCH for Paging any: %d%s", net->pag_any_tch,
@@ -800,7 +804,12 @@ static int config_write_net(struct vty *vty)
 	vty_out(vty, "network%s", VTY_NEWLINE);
 	vty_out(vty, " network country code %u%s", gsmnet->country_code, VTY_NEWLINE);
 	vty_out(vty, " mobile network code %u%s", gsmnet->network_code, VTY_NEWLINE);
-	vty_out(vty, " encryption a5 %u%s", gsmnet->a5_encryption, VTY_NEWLINE);
+	vty_out(vty, " encryption a5");
+	for (int i = 0; i < 8; i++) {
+		if (gsmnet->a5_encryption_mask & (1 << i))
+			vty_out(vty, " %u", i);
+	}
+	vty_out(vty, "%s", VTY_NEWLINE);
 	vty_out(vty, " neci %u%s", gsmnet->neci, VTY_NEWLINE);
 	vty_out(vty, " paging any use tch %d%s", gsmnet->pag_any_tch, VTY_NEWLINE);
 	vty_out(vty, " handover %u%s", gsmnet->handover.active, VTY_NEWLINE);
